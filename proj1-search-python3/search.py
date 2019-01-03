@@ -19,6 +19,41 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+
+def generic_search_dfs_bfs(fringe_type, problem):
+    """
+    A generic search function implementation. DFS, BFS both
+    in the same way except for the node structuring mechanism. This generic 
+    search will take problem and popping mechanism and will return the expected
+    actions. 
+    """
+    closed = set()
+    fringe = fringe_type()
+
+    if problem.isGoalState(problem.getStartState()):
+        return []
+
+    # Adding initial successors to the stack
+    for successor in problem.getSuccessors(problem.getStartState()):
+        fringe.push((successor, [successor[1]]))
+
+    while not fringe.isEmpty():
+        node, path = fringe.pop()
+        state, _, _ = node
+        if problem.isGoalState(state):
+            return path
+
+        if state not in closed:
+            closed.add(state)
+            for child_node in problem.getSuccessors(state):
+                fringe.push((child_node, path+[child_node[1]]))
+        else:
+            print(f'Node {state} already expanded.')
+    return None
+
+
+
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -86,41 +121,42 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    "*** YOUR CODE HERE ***"
+    return generic_search_dfs_bfs(util.Stack, problem)
+ 
+
+def breadthFirstSearch(problem):
+    """Search the shallowest nodes in the search tree first."""
+    return generic_search_dfs_bfs(util.Queue, problem)
+
+
+
+def uniformCostSearch(problem):
+    """Search the node of least total cost first."""
     closed = set()
-    stack = util.Stack()
-    
+    fringe = util.PriorityQueue()
+
     if problem.isGoalState(problem.getStartState()):
         return []
+    
+    for (successor_state, successor_action, successor_cost) in problem.getSuccessors(problem.getStartState()):
+        fringe.push((successor_state, [successor_action]), successor_cost)
 
-    # Adding initial successors to the stack    
-    for successor in problem.getSuccessors(problem.getStartState()):
-        stack.push((successor, [successor[1]]))
+    while not fringe.isEmpty():
+        state, path = fringe.pop()
 
-    while not stack.isEmpty():
-        node, path = stack.pop()
-        state, _, _ = node
         if problem.isGoalState(state):
             return path
 
         if state not in closed:
             closed.add(state)
-            for child_node in problem.getSuccessors(state):
-                stack.push((child_node, path+[child_node[1]]))
+            for (successor_state, successor_action, successor_cost) in problem.getSuccessors(state):
+                fringe.push((successor_state, path + [successor_action]), successor_cost)
         else:
-            print(f'Node {state} already expanded.')
+            print(f'Node {state} already expanded!')
+    
     return None
+        
 
-
-def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
@@ -129,10 +165,43 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
+def aStarPriorityGenerator(item):
+    """
+    A priority generator function that will generate priority value for aStar search
+    problem. Assuming data is stored in queue as (state, cost, heuristic_val, path). 
+    """
+    _, cost, heuristic_val, _ = item
+    return cost + heuristic_val
+
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    closed = set()
+    fringe = util.PriorityQueueWithFunction(aStarPriorityGenerator)
+
+    if problem.isGoalState(problem.getStartState()):
+        return []
+
+    for (successor_state, successor_action, successor_cost) in problem.getSuccessors(problem.getStartState()):
+        fringe.push((successor_state, successor_cost, heuristic(successor_state, problem), [successor_action]))
+
+    while not fringe.isEmpty():
+        state, _, _, path = fringe.pop()
+
+        if problem.isGoalState(state):
+            return path
+        
+        if state not in closed:
+            closed.add(state)
+            for (successor_state, successor_action, successor_cost) in problem.getSuccessors(state):
+                fringe.push((successor_state, successor_cost, heuristic(successor_state, problem), path + [successor_action]))
+        else:
+            print(f'Node {state} already expanded!')
+    
+    return None
+        
 
 
 # Abbreviations
