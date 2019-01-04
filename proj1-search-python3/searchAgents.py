@@ -534,9 +534,8 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
+        return self.searchFunction(problem)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -555,24 +554,57 @@ class AnyFoodSearchProblem(PositionSearchProblem):
 
     def __init__(self, gameState):
         "Stores information from the gameState.  You don't need to change this."
+
+        print("PROBLEM INITIALIZED")
         # Store the food for later reference
         self.food = gameState.getFood()
+        print(list(self.food))
+        print("Pacman Position", gameState.getPacmanPosition())
 
         # Store info for the PositionSearchProblem (no need to change this)
         self.walls = gameState.getWalls()
         self.startState = gameState.getPacmanPosition()
         self.costFn = lambda x: 1
         self._visited, self._visitedlist, self._expanded = {}, [], 0 # DO NOT CHANGE
+        
+        distanceFromFoods = list(
+            map(manhattanDistance, [[self.startState, (x, y)]
+                                    for x in range(len(list(self.food))) for y in range(len(list(self.food)[0]))]))
+        ## Need to find the closed Food position and that'll be the goal state
+        # Bools containing information about food on the board
+        foodBools = [foodBool for foodBoolList in list(
+            self.food) for foodBool in foodBoolList]
+        ## Need to find the closed Food position and that'll be the goal state
+        # Bools containing information about food on the board
+        foodBools = [foodBool for foodBoolList in list(
+            self.food) for foodBool in foodBoolList]
+        distanceFromAvailableFoods = [
+            a*b for (a, b) in zip(distanceFromFoods, foodBools)]
+        print(distanceFromAvailableFoods)
+        minFoodVal = min(
+            [foodDist for foodDist in distanceFromAvailableFoods if foodDist != 0])
+        print(minFoodVal)
+        # print(distanceFromAvailableFoods)
+        minFoodIndex = distanceFromAvailableFoods.index(minFoodVal)
+        print(minFoodIndex)
+        # Converting index to x,y coordinates
+        print("LIST len", len(list(self.food)[0]))
+        x, y = minFoodIndex // len(
+            list(self.food)[0]), minFoodIndex%len(list(self.food)[0])
+
+        self.Goal = (x, y)
+        print(self.Goal)
+
+
 
     def isGoalState(self, state):
         """
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
-        x,y = state
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        print(self.Goal)
+        isGoal = state == self.Goal
+        return isGoal
 
 def mazeDistance(point1, point2, gameState):
     """
