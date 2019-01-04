@@ -509,6 +509,11 @@ def foodHeuristic(state, problem):
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
+    
+    def __init__(self, fn='uniformCostSearch'):
+        SearchAgent.__init__(self,fn=fn)
+
+
     def registerInitialState(self, state):
         self.actions = []
         currentState = state
@@ -558,51 +563,44 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         print("PROBLEM INITIALIZED")
         # Store the food for later reference
         self.food = gameState.getFood()
-        print(list(self.food))
-        print("Pacman Position", gameState.getPacmanPosition())
 
         # Store info for the PositionSearchProblem (no need to change this)
         self.walls = gameState.getWalls()
         self.startState = gameState.getPacmanPosition()
         self.costFn = lambda x: 1
         self._visited, self._visitedlist, self._expanded = {}, [], 0 # DO NOT CHANGE
-        
+
+        self.Goal = self.calculateNearestFoodLocation(self.startState)
+
+
+    def calculateNearestFoodLocation(self, startPos):
+        """
+        Will return the nearest food location given distance.
+        """
         distanceFromFoods = list(
-            map(manhattanDistance, [[self.startState, (x, y)]
+            map(manhattanDistance, [[startPos, (x, y)]
                                     for x in range(len(list(self.food))) for y in range(len(list(self.food)[0]))]))
-        ## Need to find the closed Food position and that'll be the goal state
-        # Bools containing information about food on the board
+        
         foodBools = [foodBool for foodBoolList in list(
             self.food) for foodBool in foodBoolList]
-        ## Need to find the closed Food position and that'll be the goal state
-        # Bools containing information about food on the board
-        foodBools = [foodBool for foodBoolList in list(
-            self.food) for foodBool in foodBoolList]
+        
         distanceFromAvailableFoods = [
             a*b for (a, b) in zip(distanceFromFoods, foodBools)]
-        print(distanceFromAvailableFoods)
+
         minFoodVal = min(
             [foodDist for foodDist in distanceFromAvailableFoods if foodDist != 0])
-        print(minFoodVal)
-        # print(distanceFromAvailableFoods)
         minFoodIndex = distanceFromAvailableFoods.index(minFoodVal)
-        print(minFoodIndex)
         # Converting index to x,y coordinates
-        print("LIST len", len(list(self.food)[0]))
         x, y = minFoodIndex // len(
-            list(self.food)[0]), minFoodIndex%len(list(self.food)[0])
+            list(self.food)[0]), minFoodIndex % len(list(self.food)[0])
 
-        self.Goal = (x, y)
-        print(self.Goal)
-
-
+        return (x, y)
 
     def isGoalState(self, state):
         """
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
-        print(self.Goal)
         isGoal = state == self.Goal
         return isGoal
 
