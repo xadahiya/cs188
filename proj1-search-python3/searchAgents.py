@@ -398,6 +398,7 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     distanceFromCorners = list(map(manhattanDistance, [[state[0], corner] for corner in corners]))
+    # Working fine, need to check for consistency though
     return sum([a*b for (a, b) in zip(distanceFromCorners, state[1])])
 
 
@@ -492,8 +493,19 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    distanceFromFoods = list(
+        map(manhattanDistance, [[position, (x, y)]
+         for x in range(len(list(foodGrid))) for y in range(len(list(foodGrid)[0]))]))
+    # Bools containing information about food on the board
+    foodBools = [foodBool for foodBoolList in list(
+        foodGrid) for foodBool in foodBoolList]
+    # return 0
+    ## Working fine, need to check for consistency though
+    ### Pretty sure this heuristic is not consistent yet, will see once I finish the last past
+    # return sum([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
+    return max([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
+    # return min([ x for x in [a*b for (a, b) in zip(distanceFromFoods, foodBools)] if x !=0])
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
