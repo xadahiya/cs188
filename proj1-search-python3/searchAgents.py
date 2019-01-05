@@ -309,6 +309,7 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
+        # This will go one extra step as food state is updated when successors are expanded
         isGoal =  state[1] == (False, False, False, False)
 
         # For display purposes only
@@ -320,7 +321,8 @@ class CornersProblem(search.SearchProblem):
                 if 'drawExpandedCells' in dir(__main__._display):
                     __main__._display.drawExpandedCells(
                         self._visitedlist)  # @UndefinedVariable
-
+        if isGoal:
+            print("GOAL FOUND", state)
         return isGoal
 
     def getSuccessors(self, state):
@@ -396,10 +398,12 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-
+    print(state, corners)
     distanceFromCorners = list(map(manhattanDistance, [[state[0], corner] for corner in corners]))
+    # print(state, distanceFromCorners)
     # Working fine, need to check for consistency though
-    return sum([a*b for (a, b) in zip(distanceFromCorners, state[1])])
+    # print([a*b for (a, b) in zip(distanceFromCorners, state[1])])
+    return max([a*b for (a, b) in zip(distanceFromCorners, state[1])])
 
 
 class AStarCornersAgent(SearchAgent):

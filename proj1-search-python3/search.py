@@ -28,28 +28,32 @@ def generic_search_dfs_bfs(fringe_type, problem):
     actions. 
     """
     closed = set()
-    fringe = fringe_type()
+    closed.add(problem.getStartState())
 
+    fringe = fringe_type()
     if problem.isGoalState(problem.getStartState()):
         return []
 
-    # Adding initial successors to the stack
-    for successor in problem.getSuccessors(problem.getStartState()):
-        fringe.push((successor, [successor[1]]))
+    for (successor_state, successor_action, successor_cost) in problem.getSuccessors(problem.getStartState()):
+        fringe.push((successor_state, [successor_action]))
 
     while not fringe.isEmpty():
-        node, path = fringe.pop()
-        state, _, _ = node
+        state, path = fringe.pop()
+
         if problem.isGoalState(state):
             return path
 
         if state not in closed:
             closed.add(state)
-            for child_node in problem.getSuccessors(state):
-                fringe.push((child_node, path+[child_node[1]]))
+            for (successor_state, successor_action, successor_cost) in problem.getSuccessors(state):
+                fringe.push((successor_state, path +
+                             [successor_action]))
         else:
-            print(f'Node {state} already expanded.')
+            pass
+            # print(f'Node {state} already expanded!')
+
     return None
+
 
 
 
@@ -133,16 +137,18 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     closed = set()
+    closed.add(problem.getStartState())
+    
     fringe = util.PriorityQueue()
 
     if problem.isGoalState(problem.getStartState()):
         return []
     
     for (successor_state, successor_action, successor_cost) in problem.getSuccessors(problem.getStartState()):
-        fringe.push((successor_state, [successor_action]), successor_cost)
+        fringe.push((successor_state, [successor_action], successor_cost), successor_cost)
 
     while not fringe.isEmpty():
-        state, path = fringe.pop()
+        state, path, cost = fringe.pop()
 
         if problem.isGoalState(state):
             return path
@@ -150,7 +156,7 @@ def uniformCostSearch(problem):
         if state not in closed:
             closed.add(state)
             for (successor_state, successor_action, successor_cost) in problem.getSuccessors(state):
-                fringe.push((successor_state, path + [successor_action]), successor_cost)
+                fringe.push((successor_state, path + [successor_action], cost+successor_cost), cost+successor_cost)
         else:
             print(f'Node {state} already expanded!')
     
@@ -179,6 +185,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
 
     closed = set()
+    closed.add(problem.getStartState())
+    
     fringe = util.PriorityQueueWithFunction(aStarPriorityGenerator)
 
     if problem.isGoalState(problem.getStartState()):
@@ -188,7 +196,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         fringe.push((successor_state, successor_cost, heuristic(successor_state, problem), [successor_action]))
 
     while not fringe.isEmpty():
-        state, _, _, path = fringe.pop()
+        state, cost, _, path = fringe.pop()
 
         if problem.isGoalState(state):
             return path
@@ -196,8 +204,9 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         if state not in closed:
             closed.add(state)
             for (successor_state, successor_action, successor_cost) in problem.getSuccessors(state):
-                fringe.push((successor_state, successor_cost, heuristic(successor_state, problem), path + [successor_action]))
+                fringe.push((successor_state, cost+successor_cost, heuristic(successor_state, problem), path + [successor_action]))
         else:
+            # pass
             print(f'Node {state} already expanded!')
     
     return None
