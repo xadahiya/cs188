@@ -323,6 +323,7 @@ class CornersProblem(search.SearchProblem):
                         self._visitedlist)  # @UndefinedVariable
         if isGoal:
             print("GOAL FOUND", state)
+            print(self.corners)
         return isGoal
 
     def getSuccessors(self, state):
@@ -348,7 +349,7 @@ class CornersProblem(search.SearchProblem):
                 
             if not hitsWall:
                 for i in range(len(self.corners)):
-                    if (x, y) == self.corners[i]:
+                    if (nextx, nexty) == self.corners[i]:
                         foodVals[i] = False
 
                 nextState = ((nextx, nexty), tuple(foodVals))
@@ -398,11 +399,9 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-    print(state, corners)
+
     distanceFromCorners = list(map(manhattanDistance, [[state[0], corner] for corner in corners]))
-    # print(state, distanceFromCorners)
-    # Working fine, need to check for consistency though
-    # print([a*b for (a, b) in zip(distanceFromCorners, state[1])])
+
     return max([a*b for (a, b) in zip(distanceFromCorners, state[1])])
 
 
@@ -496,6 +495,8 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
+
+    print(problem.walls)
     position, foodGrid = state
     distanceFromFoods = list(
         map(manhattanDistance, [[position, (x, y)]
@@ -503,13 +504,15 @@ def foodHeuristic(state, problem):
     # Bools containing information about food on the board
     foodBools = [foodBool for foodBoolList in list(
         foodGrid) for foodBool in foodBoolList]
-    # return 0
-    ## Working fine, need to check for consistency though
-    ### Pretty sure this heuristic is not consistent yet, will see once I finish the last past
-    # return sum([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
-    return max([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
-    # return min([ x for x in [a*b for (a, b) in zip(distanceFromFoods, foodBools)] if x !=0])
-
+    
+    # One heuristic is not yeilding good enough results. Will try to develop several
+    # consistant heuristics and will take max
+    ## h1 = max of distance from farthest food
+    h1 =  max([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
+    ## h2 = number of foods left
+    h2 = sum(map(int, foodBools))
+    # print(h2)
+    return max(h1, h2)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"

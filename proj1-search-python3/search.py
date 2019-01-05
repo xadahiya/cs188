@@ -49,8 +49,7 @@ def generic_search_dfs_bfs(fringe_type, problem):
                 fringe.push((successor_state, path +
                              [successor_action]))
         else:
-            pass
-            # print(f'Node {state} already expanded!')
+            print(f'Node {state} already expanded!')
 
     return None
 
@@ -206,7 +205,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             for (successor_state, successor_action, successor_cost) in problem.getSuccessors(state):
                 fringe.push((successor_state, cost+successor_cost, heuristic(successor_state, problem), path + [successor_action]))
         else:
-            # pass
             print(f'Node {state} already expanded!')
     
     return None
