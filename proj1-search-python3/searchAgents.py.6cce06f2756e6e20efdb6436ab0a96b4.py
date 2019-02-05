@@ -309,7 +309,6 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        # This will go one extra step as food state is updated when successors are expanded
         isGoal =  state[1] == (False, False, False, False)
 
         # For display purposes only
@@ -321,9 +320,7 @@ class CornersProblem(search.SearchProblem):
                 if 'drawExpandedCells' in dir(__main__._display):
                     __main__._display.drawExpandedCells(
                         self._visitedlist)  # @UndefinedVariable
-        if isGoal:
-            print("GOAL FOUND", state)
-            print(self.corners)
+
         return isGoal
 
     def getSuccessors(self, state):
@@ -349,7 +346,7 @@ class CornersProblem(search.SearchProblem):
                 
             if not hitsWall:
                 for i in range(len(self.corners)):
-                    if (nextx, nexty) == self.corners[i]:
+                    if (x, y) == self.corners[i]:
                         foodVals[i] = False
 
                 nextState = ((nextx, nexty), tuple(foodVals))
@@ -401,8 +398,8 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     distanceFromCorners = list(map(manhattanDistance, [[state[0], corner] for corner in corners]))
-
-    return max([a*b for (a, b) in zip(distanceFromCorners, state[1])])
+    # Working fine, need to check for consistency though
+    return sum([a*b for (a, b) in zip(distanceFromCorners, state[1])])
 
 
 class AStarCornersAgent(SearchAgent):
@@ -495,7 +492,6 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-
     position, foodGrid = state
     distanceFromFoods = list(
         map(manhattanDistance, [[position, (x, y)]
@@ -503,31 +499,16 @@ def foodHeuristic(state, problem):
     # Bools containing information about food on the board
     foodBools = [foodBool for foodBoolList in list(
         foodGrid) for foodBool in foodBoolList]
-    
-    # One heuristic is not yeilding good enough results. Will try to develop several
-    # consistant heuristics and will take max
-    ## h1 = max of distance from farthest food
-    h1 =  max([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
-    ## h2 = number of foods left
-    # h2 = sum(map(int, foodBools))
-    return h1
-    ## Trying mean of distances as heuristic val
-    avalFoodDistances = [a*b for (a, b) in zip(distanceFromFoods, foodBools)]
+    # return 0
+    ## Working fine, need to check for consistency though
+    ### Pretty sure this heuristic is not consistent yet, will see once I finish the last past
+    # return sum([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
+    return max([a*b for (a, b) in zip(distanceFromFoods, foodBools)])
+    # return min([ x for x in [a*b for (a, b) in zip(distanceFromFoods, foodBools)] if x !=0])
 
-    numFoods = sum(int(foodBool) for foodBool in foodBools)
-    numFoods = numFoods if numFoods != 0 else 1
-    h2 = sum(avalFoodDistances)/(numFoods)
-    # print(h2)
-
-    return max([h1, h2])
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
-    
-    def __init__(self, fn='uniformCostSearch'):
-        SearchAgent.__init__(self,fn=fn)
-
-
     def registerInitialState(self, state):
         self.actions = []
         currentState = state
@@ -583,39 +564,56 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         self.startState = gameState.getPacmanPosition()
         self.costFn = lambda x: 1
         self._visited, self._visitedlist, self._expanded = {}, [], 0 # DO NOT CHANGE
-
-        self.Goal = self.calculateNearestFoodLocation(self.startState)
-
-
-    def calculateNearestFoodLocation(self, startPos):
-        """
-        Will return the nearest food location given distance.
-        """
-        distanceFromFoods = list(
-            map(manhattanDistance, [[startPos, (x, y)]
-                                    for x in range(len(list(self.food))) for y in range(len(list(self.food)[0]))]))
         
+        distanceFromFoods = list(
+            map(manhattanDistance, [[state, (x, y)]
+                                    for x in range(len(list(self.food))) for y in range(len(list(self.food)[0]))]))
+        ## Need to find the closed Food position and that'll be the goal state
+        # Bools containing information about food on the board
         foodBools = [foodBool for foodBoolList in list(
             self.food) for foodBool in foodBoolList]
-        
-        distanceFromAvailableFoods = [
-            a*b for (a, b) in zip(distanceFromFoods, foodBools)]
-
-        minFoodVal = min(
-            [foodDist for foodDist in distanceFromAvailableFoods if foodDist != 0])
+        ## Need to find the closed Food position and that'll be the goal state
+        # Bools containing information about food on the board
+        foodBools = [foodBool for foodBoolList in list(
+            self.food) for foodBool in foodBoolList]
+        distanceFromAvailableFoods = [a*b for (a, b) in zip(distanceFromFoods, foodBools)]
+        minFoodVal = min([foodDist for foodDist in distanceFromAvailableFoods if foodDist !=0])
+        # print(distanceFromAvailableFoods)
         minFoodIndex = distanceFromAvailableFoods.index(minFoodVal)
+        
+        # print(minFoodIndex)
         # Converting index to x,y coordinates
-        x, y = minFoodIndex // len(
-            list(self.food)[0]), minFoodIndex % len(list(self.food)[0])
+        x,y = minFoodIndex%len(list(self.food)), minFoodIndex//len(list(self.food))
 
-        return (x, y)
+
 
     def isGoalState(self, state):
         """
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
-        isGoal = state == self.Goal
+        ## Need to find the closed Food position and that'll be the goal state
+        # Bools containing information about food on the board
+        foodBools = [foodBool for foodBoolList in list(
+            self.food) for foodBool in foodBoolList]
+        # print(foodBools)
+        # return 0
+        ## Working fine, need to check for consistency though
+        ### Pretty sure this heuristic is not consistent yet, will see once I finish the last past
+        distanceFromAvailableFoods = [a*b for (a, b) in zip(distanceFromFoods, foodBools)]
+        minFoodVal = min([foodDist for foodDist in distanceFromAvailableFoods if foodDist !=0])
+        # print(distanceFromAvailableFoods)
+        minFoodIndex = distanceFromAvailableFoods.index(minFoodVal)
+        
+        # print(minFoodIndex)
+        # Converting index to x,y coordinates
+        x,y = minFoodIndex%len(list(self.food)), minFoodIndex//len(list(self.food))
+        print(x,y)
+        # print(x,y, state)
+        # print((list(self.food)))
+        # print(self.food)
+
+        isGoal = state == (x,y)
         return isGoal
 
 def mazeDistance(point1, point2, gameState):
